@@ -79,7 +79,7 @@
   --focus-outline-color: var(--button-bgcolor) !important;
 
   --toolbarbutton-icon-fill-attention: var(--zen-primary-color) !important;
-  --toolbarbutton-icon-fill: light-dark(rgb(57, 57, 58), rgb(251, 251, 254)) !important;
+  --toolbarbutton-icon-fill: light-dark(rgba(57, 57, 58, 0.6), rgba(251, 251, 254, 0.6)) !important;
 
   --button-primary-bgcolor: var(--in-content-primary-button-background) !important;
   --button-primary-hover-bgcolor: var(--in-content-primary-button-background-hover) !important;
@@ -104,7 +104,7 @@
   --zen-button-border-radius: 5px;
   --zen-button-padding: 0.6rem 1.2rem;
 
-  --zen-toolbar-element-bg: light-dark(rgba(89, 89, 89, 0.1), rgba(255, 255, 255, 0.125));
+  --zen-toolbar-element-bg: light-dark(rgba(89, 89, 89, 0.1), rgba(255, 255, 255, 0.1));
 
   /* Toolbar */
   --zen-toolbar-height: 38px;
@@ -155,16 +155,16 @@
 
   --input-bgcolor: var(--zen-colors-tertiary) !important;
   --input-border-color: var(--zen-input-border-color) !important;
-  --zen-themed-toolbar-bg: light-dark(var(--zen-branding-bg), #161616);
-  --zen-themed-toolbar-bg-transparent: light-dark(var(--zen-branding-bg), #161616);
+  --zen-themed-toolbar-bg: light-dark(rgb(240, 240, 244), #171717);
+  --zen-themed-toolbar-bg-transparent: light-dark(var(--zen-branding-bg), #171717);
 
-  --zen-workspace-indicator-height: 45px;
+  --zen-workspace-indicator-height: 48px;
 
   @media (-moz-windows-mica) or (-moz-platform: macos) {
     background: transparent;
     --zen-themed-toolbar-bg-transparent: transparent;
     @media (-moz-bool-pref: 'zen.widget.windows.acrylic') {
-      --zen-themed-toolbar-bg-transparent: color-mix(in srgb, var(--zen-themed-toolbar-bg) 80%, transparent 20%);
+      --zen-themed-toolbar-bg-transparent: color-mix(in srgb, var(--zen-themed-toolbar-bg) 35%, transparent 65%);
     }
   }
 
@@ -172,6 +172,7 @@
   --arrowpanel-background: var(--zen-dialog-background) !important;
 
   --zen-big-shadow: 0 0 9.73px 0px light-dark(rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.25));
+  --zen-active-tab-scale: 0.98;
 
   /* Nativity */
   --zen-native-content-radius: var(--zen-border-radius);

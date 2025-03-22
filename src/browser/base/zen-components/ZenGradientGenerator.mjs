@@ -500,9 +500,8 @@
       const centerPosition = { x: rect.width / 2, y: rect.height / 2 };
 
       const harmonyAngles = getColorHarmonyType(dots.length + (action === 'add' ? 1 : action === 'remove' ? -1 : 0), this.dots);
-      if (!harmonyAngles || harmonyAngles.angles.length === 0) return dots;
-
       this.useAlgo = harmonyAngles.type;
+      if (!harmonyAngles || harmonyAngles.angles.length === 0) return dots;
 
       let primaryDot = dots.find((dot) => dot.ID === 0);
       if (!primaryDot) return [];
@@ -638,7 +637,7 @@
           }
         });
 
-        let colorPositions = this.calculateCompliments(this.dots, 'remove', this.useAlgo);
+        let colorPositions = this.calculateCompliments(this.dots, 'remove');
         this.handleColorPositions(colorPositions);
         this.updateCurrentWorkspace();
         return;
@@ -780,7 +779,7 @@
           }
         });
 
-        let colorPositions = this.calculateCompliments(this.dots, 'remove', this.useAlgo);
+        let colorPositions = this.calculateCompliments(this.dots, 'remove');
         this.handleColorPositions(colorPositions);
 
         this.updateCurrentWorkspace();
@@ -863,15 +862,18 @@
     getToolbarModifiedBase() {
       return this.isDarkMode
         ? 'color-mix(in srgb, var(--zen-themed-toolbar-bg) 80%, #fff 20%)'
-        : 'color-mix(in srgb, var(--zen-themed-toolbar-bg) 95%, #000 5%)';
+        : 'color-mix(in srgb, var(--zen-themed-toolbar-bg) 95%, #000 6%)';
     }
 
     getSingleRGBColor(color, forToolbar = false) {
       if (color.isCustom) {
         return color.c;
       }
-      const toolbarBg = forToolbar ? this.getToolbarModifiedBase() : 'var(--zen-themed-toolbar-bg-transparent)';
-      return `color-mix(in srgb, rgb(${color.c[0]}, ${color.c[1]}, ${color.c[2]}) ${this.currentOpacity * 100}%, ${toolbarBg} ${(1 - this.currentOpacity) * 100}%)`;
+      if (forToolbar) {
+        const toolbarBg = this.getToolbarModifiedBase();
+        return `color-mix(in srgb, rgb(${color.c[0]}, ${color.c[1]}, ${color.c[2]}) ${this.currentOpacity * 100}%, ${toolbarBg} ${(1 - this.currentOpacity) * 100}%)`;
+      }
+      return `rgba(${color.c[0]}, ${color.c[1]}, ${color.c[2]}, ${this.currentOpacity})`;
     }
 
     getGradient(colors, forToolbar = false) {
@@ -882,8 +884,14 @@
         return forToolbar ? 'var(--zen-themed-toolbar-bg)' : 'var(--zen-themed-toolbar-bg-transparent)';
       } else if (themedColors.length === 1) {
         return this.getSingleRGBColor(themedColors[0], forToolbar);
+      } else if (themedColors.length !== 3) {
+        return `linear-gradient(${this.currentRotation}deg, ${themedColors.map((color) => this.getSingleRGBColor(color, forToolbar)).join(', ')})`;
+      } else {
+        let color1 = this.getSingleRGBColor(themedColors[2], forToolbar);
+        let color2 = this.getSingleRGBColor(themedColors[0], forToolbar);
+        let color3 = this.getSingleRGBColor(themedColors[1], forToolbar);
+        return `linear-gradient(${this.currentRotation}deg, ${color1}, ${color2}, ${color3})`;
       }
-      return `linear-gradient(${this.currentRotation}deg, ${themedColors.map((color) => this.getSingleRGBColor(color, forToolbar)).join(', ')})`;
     }
 
     static getTheme(colors = [], opacity = 0.5, rotation = -45, texture = 0) {

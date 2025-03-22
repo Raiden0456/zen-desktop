@@ -41,11 +41,14 @@
       } catch (e) {
         console.error('ZenThemeModifier: Error initializing browser layout', e);
       }
-      this.closeWatermark();
+      ZenWorkspaces.promiseInitialized.then(() => {
+        this.closeWatermark();
+      });
     },
 
     openWatermark() {
       if (!Services.prefs.getBoolPref('zen.watermark.enabled', false)) {
+        document.documentElement.removeAttribute('zen-before-loaded');
         return;
       }
       for (let elem of document.querySelectorAll('#browser > *, #urlbar')) {
@@ -55,6 +58,7 @@
 
     closeWatermark() {
       document.documentElement.removeAttribute('zen-before-loaded');
+      window.dispatchEvent(new window.Event('resize')); // To recalculate the layout
       if (Services.prefs.getBoolPref('zen.watermark.enabled', false)) {
         gZenUIManager.motion
           .animate(

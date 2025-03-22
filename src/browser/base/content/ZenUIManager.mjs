@@ -9,6 +9,7 @@ var gZenUIManager = {
     XPCOMUtils.defineLazyPreferenceGetter(this, 'sidebarHeightThrottle', 'zen.view.sidebar-height-throttle', 500);
     XPCOMUtils.defineLazyPreferenceGetter(this, 'contentElementSeparation', 'zen.theme.content-element-separation', 0);
     XPCOMUtils.defineLazyPreferenceGetter(this, 'urlbarWaitToClear', 'zen.urlbar.wait-to-clear', 0);
+    XPCOMUtils.defineLazyPreferenceGetter(this, 'urlbarShowDomainOnly', 'zen.urlbar.show-domain-only-in-sidebar', true);
 
     gURLBar._zenTrimURL = this.urlbarTrim.bind(this);
 
@@ -36,6 +37,8 @@ var gZenUIManager = {
 
     window.addEventListener('TabClose', this.onTabClose.bind(this));
     this.tabsWrapper.addEventListener('scroll', this.saveScrollbarState.bind(this));
+
+    gZenMediaController.init();
   },
 
   updateTabsToolbar() {
@@ -61,6 +64,8 @@ var gZenUIManager = {
     }
     tabs.style.removeProperty('flex');
     tabs.style.maxHeight = height + 'px';
+    gZenVerticalTabsManager.actualWindowButtons.removeAttribute('zen-has-hover');
+    gURLBar.updateLayoutBreakout();
   },
 
   get tabsWrapper() {
@@ -218,7 +223,7 @@ var gZenUIManager = {
   },
 
   urlbarTrim(aURL) {
-    if (gZenVerticalTabsManager._hasSetSingleToolbar) {
+    if (gZenVerticalTabsManager._hasSetSingleToolbar && this.urlbarShowDomainOnly) {
       let url = BrowserUIUtils.removeSingleTrailingSlashFromURL(aURL);
       return url.startsWith('https://') ? url.split('/')[2] : url;
     }
@@ -245,7 +250,7 @@ var gZenUIManager = {
     const toast = this._createToastElement(messageId, options);
     this._toastContainer.removeAttribute('hidden');
     this._toastContainer.appendChild(toast);
-    await this.motion.animate(toast, { opacity: [0, 1], scale: [0.8, 1] }, { type: 'spring', bounce: 0.5, duration: 0.5 });
+    await this.motion.animate(toast, { opacity: [0, 1], scale: [0.8, 1] }, { type: 'spring', bounce: 0.5, duration: 0.7 });
     await new Promise((resolve) => setTimeout(resolve, 3000));
     await this.motion.animate(toast, { opacity: [1, 0], scale: [1, 0.9] }, { duration: 0.2, bounce: 0 });
     const toastHeight = toast.getBoundingClientRect().height;
@@ -255,6 +260,10 @@ var gZenUIManager = {
     if (!this._toastContainer.hasChildNodes()) {
       this._toastContainer.setAttribute('hidden', 'true');
     }
+  },
+
+  get panelUIPosition() {
+    return gZenVerticalTabsManager._hasSetSingleToolbar ? 'bottomleft topleft' : 'bottomright topright';
   },
 };
 
@@ -345,33 +354,44 @@ var gZenVerticalTabsManager = {
       return visibleTabs[visibleTabs.length - 1] === aTab;
     };
 
-    const tabSize = aTab.getBoundingClientRect().height;
-    const transform = `-${tabSize}px`;
-    gZenUIManager.motion
-      .animate(
-        aTab,
-        {
-          opacity: [0, 1],
-          transform: ['scale(0.95)', 'scale(1)'],
-          marginBottom: isLastTab() ? [] : [transform, '0px'],
-        },
-        {
-          duration: 0.2,
-          easing: 'ease-out',
-        }
-      )
-      .then(() => {
-        aTab.style.removeProperty('margin-bottom');
-        aTab.style.removeProperty('transform');
-        aTab.style.removeProperty('opacity');
-      });
-    gZenUIManager.motion
-      .animate(aTab.querySelector('.tab-content'), {
-        filter: ['blur(1px)', 'blur(0px)'],
-      })
-      .then(() => {
-        aTab.querySelector('.tab-stack').style.removeProperty('filter');
-      });
+    try {
+      const tabSize = aTab.getBoundingClientRect().height;
+      const transform = `-${tabSize}px`;
+      gZenUIManager.motion
+        .animate(
+          aTab,
+          {
+            opacity: [0, 1],
+            transform: ['scale(0.95)', 'scale(1)'],
+            marginBottom: isLastTab() ? [] : [transform, '0px'],
+          },
+          {
+            duration: 0.12,
+            easing: 'ease-out',
+          }
+        )
+        .then(() => {
+          aTab.style.removeProperty('margin-bottom');
+          aTab.style.removeProperty('transform');
+          aTab.style.removeProperty('opacity');
+        });
+      gZenUIManager.motion
+        .animate(
+          aTab.querySelector('.tab-content'),
+          {
+            filter: ['blur(1px)', 'blur(0px)'],
+          },
+          {
+            duration: 0.12,
+            easing: 'ease-out',
+          }
+        )
+        .then(() => {
+          aTab.querySelector('.tab-stack').style.removeProperty('filter');
+        });
+    } catch (e) {
+      console.error(e);
+    }
   },
 
   get actualWindowButtons() {
@@ -483,9 +503,11 @@ var gZenVerticalTabsManager = {
       if (isSidebarExpanded) {
         this.navigatorToolbox.setAttribute('zen-sidebar-expanded', 'true');
         document.documentElement.setAttribute('zen-sidebar-expanded', 'true');
+        gBrowser.tabContainer.setAttribute('expanded', 'true');
       } else {
         this.navigatorToolbox.removeAttribute('zen-sidebar-expanded');
         document.documentElement.removeAttribute('zen-sidebar-expanded');
+        gBrowser.tabContainer.removeAttribute('expanded');
       }
 
       const appContentNavbarContaienr = document.getElementById('zen-appcontent-navbar-container');
@@ -616,6 +638,12 @@ var gZenVerticalTabsManager = {
       }
 
       gZenCompactModeManager.updateCompactModeContext(isSingleToolbar);
+      document.getElementById('urlbar').removeAttribute('--urlbar-height');
+      if (!isSingleToolbar) {
+        document.getElementById('urlbar').style.setProperty('--urlbar-height', '32px');
+      } else {
+        gURLBar.updateLayoutBreakout();
+      }
 
       // Always move the splitter next to the sidebar
       this.navigatorToolbox.after(document.getElementById('zen-sidebar-splitter'));

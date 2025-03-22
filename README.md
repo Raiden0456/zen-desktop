@@ -28,9 +28,9 @@
 
 ## 🖥️ Compatibility
 
-Zen is currently built using Firefox version `135.0.1`! 🚀
+Zen is currently built using Firefox version `136.0.2`! 🚀
 
-- [`Zen Twilight`](https://zen-browser.app/download?twilight) - Is currently built using Firefox version `RC 135.0.1`!
+- [`Zen Twilight`](https://zen-browser.app/download?twilight) - Is currently built using Firefox version `RC 136.0`!
 - Check out the latest [release notes](https://zen-browser.app/release-notes)!
 - Part of our mission is to keep Zen up-to-date with the latest version of Firefox, so you can enjoy the latest features and security updates!
 
@@ -44,7 +44,7 @@ We keep track of how many issues are closed at the end of the month in [docs/iss
 
 ### Versioning
 
-Zen uses [Semantic Versioning](https://semver.org/), meaning versions are displayed as `a.bc.d` where:
+Zen uses [Semantic Versioning](https://semver.org/), meaning versions are displayed as `a.b.cd` where:
 
 - `a` is the major version
 - `b` is the minor version
@@ -96,16 +96,21 @@ brew install --cask zen-browser
 yay -S zen-browser-bin
 ```
 
-##### Other Linux distributions (AppImage with automated system integration)
+##### Other Linux distributions (Tarball or AppImage)
 
-- `native` tarball install:
-  `bash <(curl -s https://updates.zen-browser.app/install.sh)`
+- `Tarball` install:
 
-- `zsync` is required for the Update feature of the script below
+```sh
+bash <(curl -s https://updates.zen-browser.app/install.sh)
+```
+
+- `AppImage` install:
 
 ```sh
 bash <(curl https://updates.zen-browser.app/appimage.sh)
 ```
+
+> AppImage install requires `zsync` for the Update feature
 
 - Again, if you don't see your OS listed above, that's because we already have it in our [downloads page](https://zen-browser.app/download)! 🔄
 
@@ -139,4 +144,4 @@ Thanks everyone for making Zen stand out among these giants!
 
 ## 📄 License
 
-Zen browser is under the [MPL LICENSE](./LICENSE). All the code is open-source and free to use! Attribution is appreciated but not required.
+Zen browser is under the [MPL 2.0 LICENSE](./LICENSE). All the code is open-source and free to use! Attribution is appreciated but not required.

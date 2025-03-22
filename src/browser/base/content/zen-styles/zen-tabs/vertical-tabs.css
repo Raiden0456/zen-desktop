@@ -94,9 +94,8 @@
     padding: 6px !important;
   }
 
-  & #urlbar-container,
-  & #urlbar {
-    --urlbar-container-height: 40px;
+  & #urlbar-container[breakout='true']:has([zen-floating-urlbar='true']) {
+    --urlbar-container-height: 36px !important;
     --urlbar-height: 38px !important;
   }
 
@@ -109,7 +108,7 @@
   }
 
   & #zen-sidebar-top-buttons {
-    margin: 4px 0;
+    margin: var(--zen-toolbox-padding) 0 calc(var(--zen-toolbox-padding) / 2) 0;
   }
 
   & #PanelUI-menu-button {
@@ -153,8 +152,6 @@
 
   min-width: var(--zen-toolbox-min-width);
   margin-top: 0 !important; /* Fix full screen mode */
-
-  padding-bottom: var(--zen-element-separation) !important;
 
   border: none;
   order: 0 !important;
@@ -258,14 +255,29 @@
   }
 
   & .tabbrowser-tab {
-    transition: scale 0.07s ease;
+    &,
+    & .tab-content > image {
+      transition: scale 0.07s ease;
+    }
 
     &[zen-empty-tab] {
       display: none;
     }
 
-    &:active {
-      scale: 0.98;
+    #tabbrowser-tabs:not([movingtab]) &:active:not(:has(.tab-content > image:active)) {
+      scale: var(--zen-active-tab-scale);
+    }
+
+    #tabbrowser-tabs:not([movingtab]) & .tab-content > image:active {
+      scale: 0.92;
+    }
+
+    & .tab-icon-image {
+      &:not([src]),
+      &:-moz-broken {
+        content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3C/svg%3E") !important;
+        background: color-mix(in srgb, var(--zen-primary-color) 30%, transparent 70%);
+      }
     }
 
     max-width: unset;
@@ -374,6 +386,12 @@
   overflow-y: auto;
   height: 100%;
   scrollbar-width: thin;
+
+  /* Only do this hack if we have workspaces enabled */
+  :root[zen-workspace-id] & {
+    margin-left: calc(-1 * var(--zen-toolbox-padding));
+    width: calc(100% + var(--zen-toolbox-padding) * 2);
+  }
 }
 
 #zen-browser-tabs-container {
@@ -391,7 +409,7 @@
   max-height: unset !important;
 
   & .tabbrowser-tab:not(:hover) .tab-background:not([selected]):not([multiselected]) {
-    background: transparent !important;
+    background: transparent;
   }
 
   & .tabbrowser-tab .tab-content {
@@ -440,7 +458,7 @@
     padding-right: 0;
 
     :root[zen-single-toolbar='true'] & {
-      & #urlbar:not([breakout-extend='true']) .urlbar-input-container {
+      & #urlbar:not([breakout-extend='true']):not([pageproxystate='invalid']) .urlbar-input-container {
         padding-left: 8px;
         padding-right: 4px;
       }
@@ -451,18 +469,11 @@
     margin-top: 0;
   }
 
-  & #zen-workspaces-button[as-button='true'] {
-    width: calc(100% - 10px) !important;
-  }
-
   & .zen-current-workspace-indicator-icon[no-icon='true'] {
     display: none;
   }
 
   & #zen-workspaces-button {
-    margin-left: 2px;
-    margin-right: 2px;
-
     & .zen-workspace-sidebar-icon[no-icon='true'] {
       display: none;
     }
@@ -600,7 +611,7 @@
       &:is(:hover, [visuallyselected]) .tab-close-button {
         display: block;
         --tab-inline-padding: 0; /* Avoid weird padding */
-        margin-inline-end: 0 !important;
+        margin-inline-end: 0;
       }
 
       .tab-throbber,
@@ -751,14 +762,6 @@
   }
   & #zen-workspaces-button {
     flex-direction: column;
-    &:not([as-button='true']) {
-      & toolbarbutton {
-        &[active='true']::after {
-          bottom: 50% !important;
-          transform: translateY(50%) !important;
-        }
-      }
-    }
   }
 }
 
@@ -775,6 +778,8 @@
   transition: opacity 0.2s ease-in-out;
   background: var(--zen-colors-border);
   appearance: none;
+  position: relative !important;
+  order: 0;
 }
 
 /* Mark: Move sidebar to the right */
@@ -863,6 +868,7 @@
     pointer-events: none;
     width: 16px;
     height: 16px;
+    border-radius: 4px;
   }
 
   &::after {
@@ -870,7 +876,7 @@
     display: block;
     width: 2.5px;
     height: 16px;
-    background: light-dark(rgba(88, 79, 79, 0.02), rgba(255, 255, 255, 0.3));
+    background: light-dark(rgba(66, 61, 61, 0.3), rgba(255, 255, 255, 0.3));
     position: absolute;
     right: 0;
     top: 50%;
@@ -886,7 +892,6 @@
 .reset-icon,
 .tab-reset-pin-button {
   appearance: none;
-
 }
 
 @media not (forced-colors) {
@@ -1042,14 +1047,14 @@
 #zen-essentials-container {
   padding-bottom: var(--zen-toolbox-padding);
   overflow: hidden;
-  gap: 3px;
+  gap: calc(var(--zen-toolbox-padding) - 2px);
 }
 
 #zen-essentials-container {
   overflow: hidden;
   transition: max-height 0.3s ease-out;
   opacity: 1;
-  grid-template-columns: repeat(auto-fit, minmax(var(--tab-pinned-min-width-expanded), auto));
+  grid-template-columns: repeat(auto-fit, minmax(49px, auto));
   overflow: hidden;
   scrollbar-width: thin;
   display: grid;
@@ -1101,7 +1106,7 @@
       &::after {
         content: "";
         inset: -50%;
-        filter: blur(15px);
+        filter: blur(15px) brightness(1.2);
         position: absolute;
         background-size: 100% 100%;
         background-clip: padding-box;
@@ -1167,7 +1172,7 @@
     }
 
     & .titlebar-buttonbox-container {
-      margin-left: calc(-1 * var(--zen-toolbox-max-width)) !important;
+      margin-left: calc(-1 * var(--zen-toolbox-max-width) + var(--zen-toolbox-padding) / 2) !important;
     }
 
     & #zen-appcontent-wrapper {
@@ -1260,5 +1265,9 @@
 .zen-workspace-tabs-section {
   position: absolute;
   transform: translateX(-100%);
-  min-width: 100%;
+  min-width: calc(100% - var(--zen-toolbox-padding) * 2);
+
+  &:not(.zen-current-workspace-indicator) {
+    margin: 0 var(--zen-toolbox-padding);
+  }
 }

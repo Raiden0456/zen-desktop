@@ -22,8 +22,6 @@
       'TabAttrModified',
       'TabPinned',
       'TabUnpinned',
-      'TabBrowserInserted',
-      'TabBrowserDiscarded',
       'TabShow',
       'TabHide',
       'TabOpen',
@@ -150,8 +148,6 @@
       switch (action) {
         case 'TabPinned':
         case 'TabUnpinned':
-        case 'TabBrowserInserted':
-        case 'TabBrowserDiscarded':
         case 'TabShow':
         case 'TabHide':
           break;
@@ -235,9 +231,9 @@
       this.explicitUnloadTabs(tabs);
     }
 
-    explicitUnloadTabs(tabs) {
+    explicitUnloadTabs(tabs, extraArgs = {}) {
       for (let i = 0; i < tabs.length; i++) {
-        if (this.canUnloadTab(tabs[i], Date.now(), this.intervalUnloader.excludedUrls, true)) {
+        if (this.canUnloadTab(tabs[i], Date.now(), this.intervalUnloader.excludedUrls, true, extraArgs)) {
           this.unload(tabs[i]);
         }
       }
@@ -259,27 +255,28 @@
       }
     }
 
-    canUnloadTab(tab, currentTimestamp, excludedUrls, ignoreTimestamp = false) {
+    canUnloadTab(tab, currentTimestamp, excludedUrls, ignoreTimestamp = false, extraArgs = {}) {
       if (
         (tab.pinned && !ignoreTimestamp) ||
         tab.selected ||
         (tab.multiselected && !ignoreTimestamp) ||
-        tab.hasAttribute('busy') ||
-        tab.hasAttribute('pending') ||
+        (tab.hasAttribute('busy') && !ignoreTimestamp) ||
         !tab.linkedPanel ||
         tab.splitView ||
+        tab.group?.hasAttribute('split-view-group') ||
         tab.attention ||
         tab.hasAttribute('glance-id') ||
         tab.linkedBrowser?.zenModeActive ||
         (tab.pictureinpicture && !ignoreTimestamp) ||
         (tab.soundPlaying && !ignoreTimestamp) ||
         (tab.zenIgnoreUnload && !ignoreTimestamp) ||
-        excludedUrls.some((url) => url.test(tab.linkedBrowser?.currentURI.spec))
+        (excludedUrls.some((url) => url.test(tab.linkedBrowser?.currentURI.spec)) &&
+          tab.linkedBrowser?.currentURI.spec !== 'about:blank')
       ) {
         return false;
       }
       if (ignoreTimestamp) {
-        return true;
+        return this._tabPermitsUnload(tab, extraArgs);
       }
       const lastActivity = tab.lastActivity;
       if (!lastActivity) {
@@ -287,7 +284,13 @@
       }
       const diff = currentTimestamp - lastActivity;
       // Check if the tab has been inactive for more than the timeout
-      return diff > lazy.zenTabUnloaderTimeout * 60 * 1000;
+      return diff > lazy.zenTabUnloaderTimeout * 60 * 1000 && this._tabPermitsUnload(tab, extraArgs);
+    }
+
+    _tabPermitsUnload(tab, extraArgs) {
+      return typeof extraArgs.permitUnload === 'undefined'
+        ? tab.linkedBrowser?.permitUnload()?.permitUnload
+        : extraArgs.permitUnload;
     }
   }
 

@@ -60,10 +60,16 @@ def update_readme(last_version, new_version, is_rc=False):
 def update_l10n_last_commit_hash():
   L10N_REPO = "https://github.com/mozilla-l10n/firefox-l10n"
   try:
-    os.system(f"git clone {L10N_REPO} l10n-temp")
+    os.system(f"git clone {L10N_REPO} l10n-temp --depth 1")
     if not os.path.exists("firefox-cache"):
       os.mkdir("firefox-cache")
     os.system("cat l10n-temp/.git/refs/heads/main > firefox-cache/l10n-last-commit-hash")
+    # Remove new line character
+    data = ""
+    with open("firefox-cache/l10n-last-commit-hash", "r") as f:
+      data = f.read()
+    with open("firefox-cache/l10n-last-commit-hash", "w") as f:
+      f.write(data.strip())
   except KeyboardInterrupt:
     print("Exiting...")
   shutil.rmtree("l10n-temp")

@@ -85,18 +85,6 @@
   }
 }
 
-@keyframes zen-deck-fadeIn {
-  0% {
-    transform: scale(0.9);
-    opacity: 0;
-  }
-
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
 @keyframes better-sidebar-pinned-hide {
   0% {
     opacity: 1;
@@ -300,5 +288,25 @@
 
   100% {
     transform: scale(1);
+  }
+}
+
+@keyframes zen-back-and-forth-text {
+  0%,
+  10% {
+    transform: translateX(0);
+    left: 0;
+  }
+
+  45%,
+  65% {
+    transform: translateX(calc(-100% - 5px));
+    left: 100%;
+  }
+
+  90%,
+  100% {
+    transform: translateX(0);
+    left: 0;
   }
 }
